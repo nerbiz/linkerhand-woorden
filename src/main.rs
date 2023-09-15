@@ -69,6 +69,7 @@ fn main() -> Result<(), Error> {
             continue;
         }
 
+        // Character is valid, add it to the current word
         current_word.push(buffer[0]);
     }
 
