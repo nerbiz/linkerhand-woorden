@@ -7,7 +7,7 @@ fn main() -> Result<(), Error> {
 
     // Get the wordlist file
     // Source: https://github.com/OpenTaal/opentaal-wordlist
-    let mut input_file = OpenOptions::new()
+    let mut input_file: File = OpenOptions::new()
         .read(true)
         .open("res/wordlist.txt")?;
 
@@ -38,14 +38,9 @@ fn main() -> Result<(), Error> {
     let mut skip_word: bool = false;
 
     while input_file.read(&mut buffer)? > 0 {
-        // If the word is invalid, continue reading to end of line
-        if skip_word && buffer[0] != 10 {
-            continue;
-        }
-
-        // End of line reached
+        // End of line/word reached
         if buffer[0] == 10 {
-            // Add the word to the output file
+            // Add the word to the output file if it's valid
             if ! skip_word {
                 current_word.push(buffer[0]);
                 output_file.write_all(&current_word)?;
@@ -53,6 +48,11 @@ fn main() -> Result<(), Error> {
 
             current_word.clear();
             skip_word = false;
+            continue;
+        }
+
+        // If the word is invalid, continue reading to end of line
+        if skip_word {
             continue;
         }
 
