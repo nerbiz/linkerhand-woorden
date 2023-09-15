@@ -34,44 +34,41 @@ fn main() -> Result<(), Error> {
     let mut buffer: [u8; 1] = [0; 1];
     // The current word being read (as bytes)
     let mut current_word: Vec<u8> = vec!();
-    let mut word_is_valid: bool = true;
+    // Indicates whether the current word is invalid
+    let mut skip_word: bool = false;
 
     while input_file.read(&mut buffer)? > 0 {
+        // If the word is invalid, continue reading to end of line
+        if skip_word && buffer[0] != 10 {
+            continue;
+        }
+
         // End of line reached
         if buffer[0] == 10 {
             // Add the word to the output file
-            if word_is_valid == true {
+            if ! skip_word {
                 current_word.push(buffer[0]);
                 output_file.write_all(&current_word)?;
             }
 
             current_word.clear();
-            word_is_valid = true;
+            skip_word = false;
             continue;
         }
 
-        // Skip if the byte value is outside the boundaries
-        if buffer[0] < 65 || buffer[0] > 127 {
-            word_is_valid = false;
+        // The word is invalid if the byte value is outside boundaries,
+        // or when using the byte value as bit-shift amount, the bit is not in the allowed bits.
+        // To determine the bit-shift amount:
+        //   Unset 5th bit (=32) to get uppercase code point,
+        //   unset 6th bit (=64) to count from 1 to 26,
+        //   then subtract 1 to make it a 0-based bit-shift amount
+        if buffer[0] < 65
+        || buffer[0] > 127
+        || 1 << ((buffer[0] & !(32 + 64)) - 1) & allowed_bits == 0 {
+            skip_word = true;
             continue;
         }
 
-        // Unset 5th bit (subtract 32) to get uppercase code point,
-        // unset 6th bit (subtract 64) to count from 1 to 26,
-        // then subtract 1 to make it a 0-based bit-shift amount
-        let shift_amount: u8 = (buffer[0] & !96) - 1;
-
-        // Check if the character is allowed by comparing bits
-        if 1 << shift_amount & allowed_bits == 0 {
-            word_is_valid = false;
-            continue;
-        }
-
-        if word_is_valid == false {
-            continue;
-        }
-
-        word_is_valid = true;
         current_word.push(buffer[0]);
     }
 
