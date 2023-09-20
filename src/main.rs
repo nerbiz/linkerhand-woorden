@@ -18,7 +18,7 @@ fn main() -> Result<(), Error> {
         .truncate(true)
         .open("res/filtered.txt")?;
 
-    // Represent allowed characters as 1-bits in a 32-byte int:
+    // Represent allowed characters as 1-bits in a 32-bit int:
     // 00000010111011110000000001111111
     //       ZYXWVUTSRQPONMLKJIHGFEDCBA
     let allowed_bits: u32 = "QWERTASDFGZXCVB"
